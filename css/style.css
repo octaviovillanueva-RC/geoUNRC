@@ -1,0 +1,121 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background: #f5f5f5;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+header {
+    background: white;
+    padding: 12px 16px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    z-index: 10;
+}
+
+h1 {
+    font-size: 1.4rem;
+    margin-bottom: 12px;
+    color: #2196f3;
+}
+
+.controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+button {
+    background: #2196f3;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 30px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+}
+
+button:hover {
+    background: #0b7dda;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(33,150,243,0.3);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+#info {
+    background: #e3f2fd;
+    padding: 10px 12px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    color: #0d47a1;
+    word-break: break-word;
+    transition: all 0.3s;
+}
+
+#statusMsg {
+    display: inline-block;
+}
+
+#map {
+    flex: 1;
+    width: 100%;
+    z-index: 1;
+}
+
+/* Animación para el marcador del usuario */
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(33, 150, 243, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(33, 150, 243, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(33, 150, 243, 0);
+    }
+}
+
+.user-location-marker div {
+    animation: pulse 1.5s infinite;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .controls {
+        justify-content: center;
+    }
+    button {
+        font-size: 0.8rem;
+        padding: 6px 12px;
+    }
+    h1 {
+        font-size: 1.2rem;
+        text-align: center;
+    }
+}
+
+/* Scroll suave */
+html {
+    scroll-behavior: smooth;
+}

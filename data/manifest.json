@@ -1,0 +1,26 @@
+{
+  "name": "Mapa PWA - Lugares",
+  "short_name": "Mapa PWA",
+  "description": "Encuentra tu ubicación y visualiza puntos desde CSV/JSON",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#2196f3",
+  "background_color": "#ffffff",
+  "icons": [
+    {
+      "src": "iconos/icon-72.png",
+      "sizes": "72x72",
+      "type": "image/png"
+    },
+    {
+      "src": "iconos/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "iconos/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
