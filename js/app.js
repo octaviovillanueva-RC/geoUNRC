@@ -1,6 +1,6 @@
 // ========== CONFIGURACIÓN ==========
 // Puedes cambiar esta URL por tu archivo JSON local o remoto
-const JSON_URL = '../data/lugares.json';  // Archivo local en la misma carpeta
+const JSON_URL = './data/lugares.json';  // Archivo local en la misma carpeta
 // También puedes usar una URL remota: 'https://tusitio.com/datos/lugares.json'
 
 let map = null;
