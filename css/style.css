@@ -1,80 +1,152 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
+html,
 body {
-    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    background: #f5f5f5;
     height: 100vh;
-    display: flex;
-    flex-direction: column;
+    margin: 0;
+    overflow: hidden;
+    background: linear-gradient(135deg, #f2f5fa 0%, #e8eef8 100%);
+    font-family: "Inter", "Segoe UI", Roboto, Arial, sans-serif;
 }
 
-.container {
+.app-shell {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    width: min(100% - 32px, 1180px);
+    max-width: 1180px;
+    height: calc(100vh - 32px);
+    margin: 16px auto;
+    padding: 0;
+    overflow: hidden;
+    border-radius: 14px;
+    border: 1px solid #d7e1ef;
+    box-shadow: 0 18px 42px rgba(15, 23, 42, 0.12);
+    background: #f9fbff;
 }
 
-header {
-    background: white;
-    padding: 12px 16px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+.app-header {
+    background: #ffffff;
+    padding: 16px 18px;
+    border-bottom: 1px solid #e3ebf6;
     z-index: 10;
 }
 
 h1 {
-    font-size: 1.4rem;
+    font-size: 1.26rem;
+    color: #0f172a;
+}
+
+.eyebrow {
+    font-size: 0.74rem;
+    letter-spacing: 0;
+    text-transform: uppercase;
+    color: #2563eb;
+    font-weight: 700;
+}
+
+.title-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
     margin-bottom: 12px;
-    color: #2196f3;
+}
+
+.header-metrics {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.metric-pill {
+    display: grid;
+    gap: 2px;
+    min-width: 102px;
+    border: 1px solid #dbe5f3;
+    background: #f8fbff;
+    border-radius: 8px;
+    padding: 8px 10px;
+}
+
+.metric-pill strong {
+    font-size: 0.96rem;
+    color: #0f172a;
+}
+
+.metric-label {
+    font-size: 0.72rem;
+    color: #64748b;
 }
 
 .controls {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 10px;
+    justify-content: flex-start;
     margin-bottom: 10px;
 }
 
-button {
-    background: #2196f3;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 30px;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: all 0.2s;
+.controls button {
+    min-height: 38px;
+    padding: 8px 14px;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    font-weight: 500;
+    border-radius: 8px;
+    font-size: 0.86rem;
+    font-weight: 600;
 }
 
-button:hover {
-    background: #0b7dda;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(33,150,243,0.3);
-}
-
-button:active {
-    transform: translateY(0);
-}
-
-#info {
-    background: #e3f2fd;
+.status-panel {
     padding: 10px 12px;
-    border-radius: 12px;
+    border-radius: 8px;
     font-size: 0.85rem;
-    color: #0d47a1;
     word-break: break-word;
     transition: all 0.3s;
+    text-align: left;
+    border: 1px solid transparent;
 }
 
 #statusMsg {
-    display: inline-block;
+    display: block;
+    color: #0f172a;
+}
+
+.nearby-places {
+    margin-top: 10px;
+}
+
+.nearby-list {
+    display: grid;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.nearby-place-btn {
+    width: 100%;
+    justify-content: space-between;
+    border-radius: 8px;
+    background: white;
+    border: 1px solid #d7e4f7;
+    color: #1e3a8a;
+    padding: 8px 10px;
+    text-align: left;
+    box-shadow: none;
+    margin: 0;
+}
+
+.nearby-place-btn:hover {
+    background: #eff6ff;
+    box-shadow: none;
+}
+
+.nearby-place-btn span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.nearby-place-btn small {
+    flex: 0 0 auto;
+    color: #1565c0;
+    font-weight: 700;
 }
 
 #map {
@@ -102,16 +174,30 @@ button:active {
 
 /* Responsive */
 @media (max-width: 600px) {
-    .controls {
-        justify-content: center;
+    .app-shell {
+        width: 100%;
+        height: 100vh;
+        margin: 0;
+        border-radius: 0;
+        border: 0;
     }
-    button {
+    .title-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .header-metrics {
+        justify-content: flex-start;
+    }
+    .controls {
+        flex-wrap: wrap;
+        justify-content: flex-start;
+    }
+    .controls button {
         font-size: 0.8rem;
-        padding: 6px 12px;
+        padding: 7px 12px;
     }
     h1 {
-        font-size: 1.2rem;
-        text-align: center;
+        font-size: 1.06rem;
     }
 }
 
