@@ -7,8 +7,17 @@ let map = null;
 let userMarker = null;
 let placesLayer = null;
 let placesData = [];
+let placeMarkers = new Map();
 let markersVisible = true;
 let isLocating = false;
+
+function updateHeaderMetrics() {
+    const totalPlacesEl = document.getElementById('totalPlaces');
+    const markersStateEl = document.getElementById('markersState');
+
+    if (totalPlacesEl) totalPlacesEl.textContent = String(placesData.length);
+    if (markersStateEl) markersStateEl.textContent = markersVisible ? 'Activos' : 'Ocultos';
+}
 
 // ========== INICIALIZAR MAPA ==========
 function initMap() {
@@ -19,7 +28,7 @@ function initMap() {
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; CartoDB',
         subdomains: 'abcd',
-        maxZoom: 13
+        maxZoom: 19
     }).addTo(map);
     
     // Grupo para marcadores de lugares
@@ -66,6 +75,7 @@ async function loadPlacesFromJSON() {
         
         placesData = data;
         renderPlaces(placesData);
+        updateHeaderMetrics();
         setStatus(`✅ ${placesData.length} lugares cargados correctamente`);
         
     } catch (error) {
@@ -77,6 +87,7 @@ async function loadPlacesFromJSON() {
            
         ];
         renderPlaces(placesData);
+        updateHeaderMetrics();
     }
 }
 
@@ -159,12 +170,14 @@ function getUserLocationAuto() {
 // ========== MOSTRAR LUGARES CERCANOS (OPCIONAL) ==========
 function showNearbyPlaces(userLat, userLng) {
     // Calcular distancia entre tu ubicación y cada lugar
-    const placesWithDistance = placesData.map(place => {
-        const lat = parseFloat(place.lat || place.latitude);
-        const lng = parseFloat(place.lng || place.longitude);
+    const placesWithDistance = placesData.map((place, index) => {
+        const coords = getPlaceCoordinates(place);
+        if (!coords) return null;
+
+        const { lat, lng } = coords;
         const distance = calculateDistance(userLat, userLng, lat, lng);
-        return { ...place, distance };
-    });
+        return { ...place, distance, index };
+    }).filter(Boolean);
     
     // Ordenar por cercanía
     placesWithDistance.sort((a, b) => a.distance - b.distance);
@@ -172,12 +185,62 @@ function showNearbyPlaces(userLat, userLng) {
     // Mostrar los 3 más cercanos en la info
     const closest = placesWithDistance.slice(0, 3);
     if (closest.length > 0) {
-        let nearbyText = '<br><strong>📌 Más cercanos a ti:</strong><br>';
+        let nearbyText = '<div class="nearby-places"><strong>📌 Más cercanos a ti:</strong><div class="nearby-list">';
         closest.forEach(place => {
-            nearbyText += `• ${place.nombre} (${place.distance.toFixed(1)} km)<br>`;
+            nearbyText += `
+                <button class="nearby-place-btn btn btn-light" type="button" data-place-index="${place.index}">
+                    <span>${escapeHTML(getPlaceName(place))}</span>
+                    <small>${place.distance.toFixed(1)} km</small>
+                </button>
+            `;
         });
+        nearbyText += '</div></div>';
         document.getElementById('statusMsg').innerHTML += nearbyText;
     }
+}
+
+// ========== ENFOCAR LUGAR SELECCIONADO ==========
+function focusPlace(placeIndex) {
+    const place = placesData[placeIndex];
+    const coords = getPlaceCoordinates(place);
+    if (!coords) return;
+
+    if (!markersVisible) {
+        markersVisible = true;
+        renderPlaces(placesData);
+        document.getElementById('toggleMarkersBtn').textContent = 'Ocultar puntos';
+        updateHeaderMetrics();
+    }
+
+    map.setView([coords.lat, coords.lng], 17);
+
+    const marker = placeMarkers.get(placeIndex);
+    if (marker) {
+        marker.openPopup();
+    }
+}
+
+function getPlaceCoordinates(place) {
+    if (!place) return null;
+
+    const lat = parseFloat(place.lat || place.latitude);
+    const lng = parseFloat(place.lng || place.longitude);
+
+    if (isNaN(lat) || isNaN(lng)) return null;
+    return { lat, lng };
+}
+
+function getPlaceName(place) {
+    return place?.nombre || place?.name || place?.title || 'Lugar';
+}
+
+function escapeHTML(value) {
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
 }
 
 // ========== CÁLCULO DE DISTANCIA (Haversine) ==========
@@ -195,6 +258,7 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 // ========== RENDERIZAR LUGARES EN EL MAPA ==========
 function renderPlaces(places) {
     placesLayer.clearLayers();
+    placeMarkers.clear();
     if (!markersVisible) return;
     
     // Colores por categoría (opcional)
@@ -207,16 +271,16 @@ function renderPlaces(places) {
         'default': '#2196f3'
     };
     
-    places.forEach(place => {
-        const lat = parseFloat(place.lat || place.latitude);
-        const lng = parseFloat(place.lng || place.longitude);
-        const nombre = place.nombre || place.name || place.title || 'Lugar';
+    places.forEach((place, index) => {
+        const coords = getPlaceCoordinates(place);
+        if (!coords) return;
+
+        const { lat, lng } = coords;
+        const nombre = getPlaceName(place);
         const descripcion = place.descripcion || place.description || '';
         const categoria = place.categoria || place.category || '';
         const direccion = place.direccion || place.address || '';
         const telefono = place.telefono || place.phone || '';
-        
-        if (isNaN(lat) || isNaN(lng)) return;
         
         // Color según categoría
         const color = categoryColors[categoria] || categoryColors.default;
@@ -233,11 +297,11 @@ function renderPlaces(places) {
         // Contenido del popup mejorado
         let popupContent = `
             <div style="min-width: 200px;">
-                <b style="font-size: 16px; color: ${color};">${nombre}</b><br>
-                ${categoria ? `<span style="color: #666;">🏷️ ${categoria}</span><br>` : ''}
-                ${descripcion ? `📝 ${descripcion}<br>` : ''}
-                ${direccion ? `📍 ${direccion}<br>` : ''}
-                ${telefono ? `📞 ${telefono}<br>` : ''}
+                <b style="font-size: 16px; color: ${color};">${escapeHTML(nombre)}</b><br>
+                ${categoria ? `<span style="color: #666;">🏷️ ${escapeHTML(categoria)}</span><br>` : ''}
+                ${descripcion ? `📝 ${escapeHTML(descripcion)}<br>` : ''}
+                ${direccion ? `📍 ${escapeHTML(direccion)}<br>` : ''}
+                ${telefono ? `📞 ${escapeHTML(telefono)}<br>` : ''}
                 <small>🗺️ ${lat.toFixed(5)}, ${lng.toFixed(5)}</small>
             </div>
         `;
@@ -249,6 +313,7 @@ function renderPlaces(places) {
                 map.setView([lat, lng], 16);
             });
         
+        placeMarkers.set(index, marker);
         placesLayer.addLayer(marker);
     });
 }
@@ -264,11 +329,13 @@ function toggleMarkers() {
     markersVisible = !markersVisible;
     if (markersVisible) {
         renderPlaces(placesData);
-        document.getElementById('toggleMarkersBtn').innerHTML = '👁️ Ocultar puntos';
+        document.getElementById('toggleMarkersBtn').textContent = 'Ocultar puntos';
+        updateHeaderMetrics();
         setStatus(`✅ Mostrando ${placesData.length} lugares en el mapa`);
     } else {
         placesLayer.clearLayers();
-        document.getElementById('toggleMarkersBtn').innerHTML = '👁️ Mostrar puntos';
+        document.getElementById('toggleMarkersBtn').textContent = 'Mostrar puntos';
+        updateHeaderMetrics();
         setStatus('👻 Puntos ocultos temporalmente');
     }
 }
@@ -279,14 +346,23 @@ function setStatus(message, isError = false) {
     if (statusSpan) {
         statusSpan.innerHTML = message;
         const infoDiv = document.getElementById('info');
-        infoDiv.style.background = isError ? '#ffebee' : '#e3f2fd';
-        infoDiv.style.color = isError ? '#c62828' : '#0d47a1';
+        infoDiv.classList.toggle('alert-primary', !isError);
+        infoDiv.classList.toggle('alert-danger', isError);
     }
 }
 
 // ========== EVENT LISTENERS ==========
 document.getElementById('toggleMarkersBtn').addEventListener('click', toggleMarkers);
 document.getElementById('refreshLocationBtn').addEventListener('click', refreshLocation);
+document.getElementById('info').addEventListener('click', (event) => {
+    const nearbyButton = event.target.closest('.nearby-place-btn');
+    if (!nearbyButton) return;
+
+    const placeIndex = Number(nearbyButton.dataset.placeIndex);
+    if (Number.isInteger(placeIndex)) {
+        focusPlace(placeIndex);
+    }
+});
 
 // ========== INICIAR APP ==========
 document.addEventListener('DOMContentLoaded', initMap);
